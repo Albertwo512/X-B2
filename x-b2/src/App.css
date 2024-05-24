@@ -12,9 +12,15 @@
     animation: App-logo-spin infinite 20s linear;
   }
 }
+.header_logo {
+  	  height: 250px;
+  	  margin-bottom: 20px;
+  	  object-fit: contain;
+  	}
 
 .App-header {
-  background-color: #282c34;
+  background: rgb(255,255,255);
+  background: linear-gradient(273deg, rgba(255,255,255,1) 70%, rgba(211,255,240,1) 88%);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
