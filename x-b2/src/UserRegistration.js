@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
+import { LockOutlined, MailOutlined, UserOutlined } from '@ant-design/icons';
+import { Button, Form, Input, message } from 'antd';
 import Parse from 'parse/dist/parse.min.js';
+import React, { useState } from 'react';
+import { useHistory } from 'react-router-dom';
 import './App.css';
-import { LockOutlined, UserOutlined, MailOutlined } from '@ant-design/icons';
-import { Button,  Form, Input, message } from 'antd';
-
+import { useAuth } from './Auth';
 
 const app_id = process.env.REACT_APP_PARSE_APP_ID;
-const javascript_key = process.env.REACT_APP_PARSE_APP_JAVASCRIPT_KEY
+const javascript_key = process.env.REACT_APP_PARSE_APP_JAVASCRIPT_KEY;
 const REACT_APP_PARSE_HOST_URL = 'https://parseapi.back4app.com/parse';
 
 // Inicializar Parse
 Parse.initialize(app_id, javascript_key);
-Parse.serverURL = REACT_APP_PARSE_HOST_URL; 
-
+Parse.serverURL = REACT_APP_PARSE_HOST_URL;
 
 export const UserRegistration = () => {
   // Variables de estado
@@ -21,6 +21,9 @@ export const UserRegistration = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+
+  const auth = useAuth();
+  const history = useHistory();
 
   const onFinish = (values) => {
     console.log('Received values of form: ', values);
@@ -53,8 +56,6 @@ export const UserRegistration = () => {
     return validatePassword(password) === '';
   };
 
-
-
   // Función para registrar al usuario
   const doUserRegistration = async function () {
     // Valores del estado
@@ -62,7 +63,7 @@ export const UserRegistration = () => {
     const emailValue = email;
     const passwordValue = password;
     const nameValue = name; // Asegúrate de que 'name' está definido en tu estado y formulario
-  
+
     try {
       // Crear una nueva instancia de Parse.User
       const user = new Parse.User();
@@ -70,24 +71,29 @@ export const UserRegistration = () => {
       user.set("password", passwordValue);
       user.set("email", emailValue);
       user.set("name", nameValue); // Esto se guarda en el Parse.User
-  
+
       // Registrar al usuario
       const createdUser = await user.signUp();
-  
+
       // Crear una nueva instancia de la clase DB_B2
       const UserProfile = Parse.Object.extend("DB_B2");
       const userProfile = new UserProfile();
-  
+
       // Establecer los campos adicionales
       userProfile.set("username", usernameValue);
       userProfile.set("email", emailValue);
       userProfile.set("name", nameValue);
-  
+
       // Guardar el perfil del usuario en DB_B2
       await userProfile.save();
-  
-      alert(`Success! User ${createdUser.getUsername()} was successfully created!`);
       message.info(`Welcome ${createdUser.getUsername()}`);
+
+      // Iniciar sesión automáticamente al usuario
+      await Parse.User.logIn(usernameValue, passwordValue);
+      auth.signin(() => {
+        history.push("/home");
+      });
+
       return true;
     } catch (error) {
       // Manejo de errores
@@ -95,18 +101,17 @@ export const UserRegistration = () => {
       return false;
     }
   };
-  
 
   return (
     <Form
       name="normal_login"
-      className="login-form"
+      className="App-header"
       initialValues={{
         remember: true,
       }}
       onFinish={onFinish}
     >
-        <div className='header_logo'>
+      <div className='header_logo'>
         <img
           className="header_logo"
           alt="Back4App Logo"
@@ -114,8 +119,8 @@ export const UserRegistration = () => {
             'https://i.ibb.co/54LZ3s4/IMG-2865.png'
           }
         />
-        </div>
-        <Form.Item
+      </div>
+      <Form.Item
         name="name"
         rules={[
           {
@@ -125,12 +130,12 @@ export const UserRegistration = () => {
         ]}
       >
         <Input
-        value={name}
-        onChange={(event) => setName(event.target.value)}
-        placeholder="Name"
-        size="large"
-        className="form_input"
-         prefix={<UserOutlined />}/>
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          placeholder="Name"
+          size="large"
+          className="form_input"
+          prefix={<UserOutlined />} />
       </Form.Item>
       <Form.Item
         name="username"
@@ -142,15 +147,15 @@ export const UserRegistration = () => {
         ]}
       >
         <Input
-        value={username}
-        onChange={(event) => setUsername(event.target.value)}
-        placeholder="Username"
-        size="large"
-        className="form_input"
-         prefix={<UserOutlined />}/>
+          value={username}
+          onChange={(event) => setUsername(event.target.value)}
+          placeholder="Username"
+          size="large"
+          className="form_input"
+          prefix={<UserOutlined />} />
       </Form.Item>
       <Form.Item
-        name="email"        
+        name="email"
         rules={[
           {
             required: true,
@@ -161,7 +166,6 @@ export const UserRegistration = () => {
         <Input
           prefix={<MailOutlined />}
           value={email}
-          
           onChange={(event) => setEmail(event.target.value)}
           size="large"
           type="email"
@@ -169,9 +173,9 @@ export const UserRegistration = () => {
         />
       </Form.Item>
       <Form.Item
-       validateStatus={error ? 'error' : ''}
-       help={error}
-        name="password"        
+        validateStatus={error ? 'error' : ''}
+        help={error}
+        name="password"
         rules={[
           {
             required: true,
@@ -182,7 +186,6 @@ export const UserRegistration = () => {
         <Input
           prefix={<LockOutlined className="site-form-item-icon" />}
           value={password}
-          
           onChange={handleChange}
           size="large"
           type="password"
@@ -192,14 +195,14 @@ export const UserRegistration = () => {
 
       <Form.Item>
         <Button
-        disabled={!isPasswordValid()}
-         onClick={doUserRegistration}
-         type="primary"
-         className="form_button"
-         color="#208AEC"
-         size="large"
-         block
-         htmlType="submit">
+          disabled={!isPasswordValid()}
+          onClick={doUserRegistration}
+          type="primary"
+          className="form_button"
+          color="#208AEC"
+          size="large"
+          block
+          htmlType="submit">
           Sign Up
         </Button>
       </Form.Item>

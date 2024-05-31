@@ -1,18 +1,41 @@
-import React, { useState, useEffect } from 'react';
-import Parse from 'parse/dist/parse.min.js';
-import './App.css';
+// UserLogin.js
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
-import { Button, Checkbox, Form, Input, Divider, message } from 'antd';
+import { Button, Checkbox, Divider, Form, Input, message } from 'antd';
+import Parse from 'parse/dist/parse.min.js';
+import React, { useEffect, useState } from 'react';
+import { useHistory } from 'react-router-dom';
+import './App.css';
+import { useAuth } from './Auth';
 
 export const UserLogin = () => {
   // State variables
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [currentUser, setCurrentUser] = useState(null);
-  const [messageApi, contextHolder] = message.useMessage();
-  
+  const auth = useAuth();
+  const history = useHistory();
+  console.log('welcome to login')
+
+  const handleLogin = async () => {
+    try {
+      const loggedInUser = await Parse.User.logIn(username, password);
+      auth.signin(() => {
+        setCurrentUser(loggedInUser);
+        console.log('The next:' + getCurrentUser);
+        history.push("/home");
+      });
+      message.success(`Welcome ${loggedInUser.getUsername()}`, 2.5);
+      setUsername('');
+      setPassword('');
+    } catch (error) {
+      alert(`Error! ${error.message}`);
+    }
+  };
+
   const onFinish = (values) => {
     console.log('Received values of form: ', values);
+    console.log(values)
+    handleLogin();
   };
 
   useEffect(() => {
@@ -20,69 +43,41 @@ export const UserLogin = () => {
     getCurrentUser();
   }, []);
 
-  const doUserLogIn = async function () {
-    try {
-      const loggedInUser = await Parse.User.logIn(username, password);
-      messageApi
-      .open({
-        type: 'loading',
-        content: `Searching... ${loggedInUser.getUsername()}`,
-        duration: 2.5,
-      })
-      .then(() => getCurrentUser())
-      .then(() => message.success(`Welcome ${loggedInUser.getUsername()}`, 2.5))
-
-      
-      setUsername('');
-      setPassword('');
-      
-      
-      return true;
-    } catch (error) {
-      alert(`Error! ${error.message}`);
-      return false;
-    }
-  };
-
   const doUserLogOut = async function () {
     try {
       await Parse.User.logOut();
       alert('Success! No user is logged in anymore!');
-      getCurrentUser();
-      return true;
+      auth.signout(() => {
+        setCurrentUser(null);
+        history.push("/home");
+      });
     } catch (error) {
       alert(`Error! ${error.message}`);
-      return false;
     }
   };
 
-  const getCurrentUser = async function () {
+  const getCurrentUser = async function (values) {
     const currentUser = await Parse.User.current();
     setCurrentUser(currentUser);
     return currentUser;
   };
 
-  return (  
-      
-
-
+  return (
     <Form
       name="normal_login"
-      className="login-form"
+      className="App-header"
       initialValues={{
         remember: true,
       }}
       onFinish={onFinish}
     >
-        <div className='header_logo'>
+      <div className='header_logo'>
         <img
           className="header_logo"
           alt="Back4App Logo"
-          src={
-            'https://i.ibb.co/54LZ3s4/IMG-2865.png'
-          }
+          src='https://i.ibb.co/54LZ3s4/IMG-2865.png'
         />
-        </div>
+      </div>
       <Form.Item
         name="username"
         rules={[
@@ -93,12 +88,13 @@ export const UserLogin = () => {
         ]}
       >
         <Input
-        value={username}
-        onChange={(event) => setUsername(event.target.value)}
-        placeholder="Username"
-        size="large"
-        className="form_input"
-         prefix={<UserOutlined />}/>
+          value={username}
+          onChange={(event) => setUsername(event.target.value)}
+          placeholder="Username"
+          size="large"
+          className="form_input"
+          prefix={<UserOutlined />}
+        />
       </Form.Item>
       <Form.Item
         name="password"
@@ -112,8 +108,8 @@ export const UserLogin = () => {
         <Input
           prefix={<LockOutlined className="site-form-item-icon" />}
           value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            size="large"
+          onChange={(event) => setPassword(event.target.value)}
+          size="large"
           type="password"
           placeholder="Password"
         />
@@ -123,24 +119,23 @@ export const UserLogin = () => {
           <Checkbox>Remember me</Checkbox>
         </Form.Item>
 
-        <a className="login-form-forgot" href="">
+        <a className="login-form-forgot" href='/'>
           Forgot password
         </a>
       </Form.Item>
 
       <Form.Item>
-      {contextHolder}
         <Button
-         onClick={doUserLogIn}
-         type="primary"
-         className="form_button"
-         color="#208AEC"
-         size="large"
-         block
-         htmlType="submit">
+          onClick={handleLogin}
+          type="primary"
+          className="form_button"
+          color="#208AEC"
+          size="large"
+          block
+          htmlType="submit">
           Log in
         </Button>
-        Or <a href="/UserRegistration">Register now!</a>
+        Or <a href="/signup">Register now!</a>
       </Form.Item>
       {currentUser !== null && (
         <div className="container">
@@ -160,7 +155,7 @@ export const UserLogin = () => {
           </div>
         </div>
       )}
-    
+
     </Form>
   );
 };
