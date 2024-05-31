@@ -19,6 +19,37 @@
   object-fit: contain;
 }
 
+.button-top-right {
+  position: absolute;
+  top: 10px;
+  /* Puedes ajustar este valor según sea necesario */
+  right: 10px;
+  /* Puedes ajustar este valor según sea necesario */
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease;
+}
+
+.button-top-right:hover {
+  background-color: #0056b3;
+}
+
+.button-top-right:active {
+  background-color: #003f7f;
+}
+
+
+.postPage {
+  margin-top: -400px;
+  padding-inline: 150px;
+}
+
 .App-header {
   background: rgb(255, 255, 255);
   background: linear-gradient(273deg, rgba(255, 255, 255, 1) 70%, rgba(211, 255, 240, 1) 88%);

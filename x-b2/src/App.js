@@ -12,6 +12,7 @@ function App() {
     <ProvideAuth>
       <Router>
         <div className="App">
+
           <Switch>
             <Route path="/login" component={UserLogin} />
             <Route path="/signup" component={UserRegistration} />
